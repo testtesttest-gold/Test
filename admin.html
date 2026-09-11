@@ -65,8 +65,9 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
     import { getFirestore, collection, getDocs, updateDoc, doc, getDoc, deleteDoc, query, where, increment } 
       from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut, connectAuthEmulator
+    import { getAuth, onAuthStateChanged, signOut
     } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-functions.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB6qQybRVw4nlwGA-Kp8d6kCqOhdqo11Aw",
@@ -81,6 +82,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    const functions = getFunctions(app);
     let allUsers = [];
     let currentEditUserId = null;
     let passwordVisibility = {};
@@ -432,30 +434,47 @@
       }
 
       try {
-        console.log("🗑️ Starting user deletion process...");
+        console.log("🗑️ Starting complete user deletion...");
         
-        // Step 1: Delete from Firestore
-        console.log("📝 Deleting from Firestore...");
-        await deleteDoc(doc(db, "users", uid));
-        console.log("✅ Firestore document deleted");
-        
-        // Step 2: Delete from Firebase Authentication
-        // Note: Firebase Admin SDK would be needed on the backend for this.
-        // For frontend-only deletion, we use a Cloud Function or handle via backend.
-        // For now, we'll log that the user was deleted from Firestore
-        console.log("⚠️ Note: User must be deleted from Firebase Auth via Admin Panel or backend");
-        
-        document.getElementById("deleteConfirmModal").style.display = "none";
-        document.getElementById("deleteSuccessModal").style.display = "flex";
-        document.getElementById("deletedEmailDisplay").innerText = email;
-        
-        navigator.clipboard.writeText(email).then(() => {
-          console.log("Email copied to clipboard");
-        });
-        
-        setTimeout(() => {
-          loadUsers();
-        }, 1500);
+        // Try using Cloud Function to delete from both Firestore and Auth
+        try {
+          const deleteUserFunction = httpsCallable(functions, 'deleteUserAccount');
+          console.log("🔄 Calling deleteUserAccount Cloud Function...");
+          const result = await deleteUserFunction({ uid: uid, email: email });
+          console.log("✅ Cloud Function success:", result.data);
+          
+          document.getElementById("deleteConfirmModal").style.display = "none";
+          document.getElementById("deleteSuccessModal").style.display = "flex";
+          document.getElementById("deletedEmailDisplay").innerText = email;
+          document.getElementById("deleteWarning").style.display = "none";
+          
+          navigator.clipboard.writeText(email).then(() => {
+            console.log("Email copied to clipboard");
+          });
+          
+          setTimeout(() => {
+            loadUsers();
+          }, 1500);
+        } catch (functionErr) {
+          console.warn("⚠️ Cloud Function not available, falling back to Firestore deletion:", functionErr.message);
+          
+          // Fallback: Delete only from Firestore if Cloud Function fails
+          await deleteDoc(doc(db, "users", uid));
+          console.log("✅ User deleted from Firestore only");
+          
+          document.getElementById("deleteConfirmModal").style.display = "none";
+          document.getElementById("deleteSuccessModal").style.display = "flex";
+          document.getElementById("deletedEmailDisplay").innerText = email;
+          document.getElementById("deleteWarning").style.display = "block";
+          
+          navigator.clipboard.writeText(email).then(() => {
+            console.log("Email copied to clipboard");
+          });
+          
+          setTimeout(() => {
+            loadUsers();
+          }, 1500);
+        }
       } catch (err) {
         alert("❌ Error deleting user: " + err.message);
         console.error(err);
@@ -639,9 +658,9 @@
         • Password<br>
         • All earnings data<br>
         • All account information<br>
+        • Firebase Authentication record (if Cloud Function available)<br>
         <br>
-        <strong style="color:#ff9800;">⚠️ To fully remove the email from Firebase Auth, use the backend admin panel or contact support</strong><br>
-        <strong style="color:#27ae60;">Email will be freed from Firestore after deletion</strong>
+        <strong style="color:#27ae60;">Email will be completely freed up for re-registration</strong>
       </p>
 
       <input type="text" id="deleteConfirmText" placeholder="Type 'delete' to confirm" style="text-transform: lowercase;">
@@ -657,15 +676,12 @@
       <h2 style="color:#27ae60;">✅ User Deleted Successfully!</h2>
       
       <p style="text-align:left; margin:20px 0; font-size:13px;">
-        <strong>Email removed from Firestore:</strong><br>
+        <strong>Email completely removed:</strong><br>
         <span id="deletedEmailDisplay" style="background:#222; padding:8px; border-radius:5px; display:block; margin:10px 0; word-break:break-all;"></span>
       </p>
 
-      <p style="text-align:left; margin:15px 0; font-size:12px; background:#333; padding:10px; border-radius:5px; color:#ff9800;">
-        <strong>⚠️ Firebase Auth Email Status:</strong><br>
-        The email is still registered in Firebase Authentication. To completely remove it, you need to:<br>
-        1. Use Firebase Console → Authentication → Delete user<br>
-        2. Or contact your backend admin to run a cleanup script
+      <p id="deleteWarning" style="display:none; text-align:left; margin:15px 0; font-size:12px; background:#333; padding:10px; border-radius:5px; color:#ff9800; border-left:4px solid #ff9800;">
+        <strong>⚠️ Partial Deletion:</strong> User was deleted from Firestore. Email still in Firebase Auth. If re-registration fails, manually delete from Firebase Console → Authentication.
       </p>
 
       <button onclick="copyDeletedEmail()" style="background:#27ae60; width:100%;">📋 Copy Email</button>
