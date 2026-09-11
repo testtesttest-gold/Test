@@ -65,7 +65,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
     import { getFirestore, collection, getDocs, updateDoc, doc, getDoc, deleteDoc, query, where, increment } 
       from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut
+    import { getAuth, onAuthStateChanged, signOut, connectAuthEmulator
     } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -432,7 +432,18 @@
       }
 
       try {
+        console.log("🗑️ Starting user deletion process...");
+        
+        // Step 1: Delete from Firestore
+        console.log("📝 Deleting from Firestore...");
         await deleteDoc(doc(db, "users", uid));
+        console.log("✅ Firestore document deleted");
+        
+        // Step 2: Delete from Firebase Authentication
+        // Note: Firebase Admin SDK would be needed on the backend for this.
+        // For frontend-only deletion, we use a Cloud Function or handle via backend.
+        // For now, we'll log that the user was deleted from Firestore
+        console.log("⚠️ Note: User must be deleted from Firebase Auth via Admin Panel or backend");
         
         document.getElementById("deleteConfirmModal").style.display = "none";
         document.getElementById("deleteSuccessModal").style.display = "flex";
@@ -623,13 +634,14 @@
 
       <p style="text-align:left; margin:15px 0; font-size:12px; background:#222; padding:10px; border-radius:5px;">
         <strong>Will be deleted:</strong><br>
-        • Email address<br>
+        • Email address from Firestore<br>
         • Username<br>
         • Password<br>
         • All earnings data<br>
         • All account information<br>
         <br>
-        <strong style="color:#27ae60;">Email will be freed up for re-registration</strong>
+        <strong style="color:#ff9800;">⚠️ To fully remove the email from Firebase Auth, use the backend admin panel or contact support</strong><br>
+        <strong style="color:#27ae60;">Email will be freed from Firestore after deletion</strong>
       </p>
 
       <input type="text" id="deleteConfirmText" placeholder="Type 'delete' to confirm" style="text-transform: lowercase;">
@@ -645,8 +657,15 @@
       <h2 style="color:#27ae60;">✅ User Deleted Successfully!</h2>
       
       <p style="text-align:left; margin:20px 0; font-size:13px;">
-        <strong>Email is now available for re-registration:</strong><br>
+        <strong>Email removed from Firestore:</strong><br>
         <span id="deletedEmailDisplay" style="background:#222; padding:8px; border-radius:5px; display:block; margin:10px 0; word-break:break-all;"></span>
+      </p>
+
+      <p style="text-align:left; margin:15px 0; font-size:12px; background:#333; padding:10px; border-radius:5px; color:#ff9800;">
+        <strong>⚠️ Firebase Auth Email Status:</strong><br>
+        The email is still registered in Firebase Authentication. To completely remove it, you need to:<br>
+        1. Use Firebase Console → Authentication → Delete user<br>
+        2. Or contact your backend admin to run a cleanup script
       </p>
 
       <button onclick="copyDeletedEmail()" style="background:#27ae60; width:100%;">📋 Copy Email</button>
